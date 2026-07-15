@@ -1,0 +1,43 @@
+import os
+import time
+import boto3
+
+from config import (
+    BUCKET_NAME,
+    RAW_PREFIX,
+    UPLOAD_RETRY_COUNT,
+    UPLOAD_RETRY_DELAY
+)
+
+s3 = boto3.client("s3")
+
+
+def upload_file(file_path):
+
+    if not os.path.exists(file_path):
+        print("File not found.")
+        return False
+
+    filename = os.path.basename(file_path)
+
+    for attempt in range(UPLOAD_RETRY_COUNT):
+
+        try:
+
+            s3.upload_file(
+                file_path,
+                BUCKET_NAME,
+                RAW_PREFIX + filename
+            )
+
+            print(f"{filename} uploaded successfully.")
+
+            return True
+
+        except Exception as e:
+
+            print(f"Upload Failed: {e}")
+
+            time.sleep(UPLOAD_RETRY_DELAY)
+
+    return False
