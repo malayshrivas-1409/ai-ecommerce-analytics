@@ -1,8 +1,5 @@
 from datetime import datetime
 
 
-def get_timestamp():
-    """
-    Returns current UTC timestamp.
-    """
+def current_timestamp():
     return datetime.utcnow().isoformat()
