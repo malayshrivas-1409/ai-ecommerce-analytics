@@ -1,20 +1,23 @@
 # Base Image
 FROM python:3.12-slim
 
-# Working directory inside the container
+# Working directory
 WORKDIR /app
 
-# Copy dependency file first
+# Copy requirements first
 COPY requirements.txt .
 
-# Install Python packages
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy the application
 COPY app/ app/
 
-# Create logs folder
-RUN mkdir logs
+# Create logs directory
+RUN mkdir -p logs
 
-# Start application
-CMD ["python", "app/generator.py"]
+# Expose FastAPI port
+EXPOSE 8000
+
+# Start FastAPI
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -19,7 +19,7 @@ def upload_file(file_path):
 
     filename = os.path.basename(file_path)
 
-    for _ in range(UPLOAD_RETRY_COUNT):
+    for attempt in range(UPLOAD_RETRY_COUNT):
 
         try:
 
@@ -29,11 +29,13 @@ def upload_file(file_path):
                 RAW_PREFIX + filename
             )
 
-            print(f"{filename} uploaded successfully")
+            print(f"{filename} uploaded successfully.")
 
             return True
 
         except Exception as e:
+
+            print(f"Upload Attempt {attempt+1} Failed")
 
             print(e)
 

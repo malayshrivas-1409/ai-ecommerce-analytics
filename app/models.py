@@ -13,3 +13,13 @@ class GenerateResponse(BaseModel):
     status: str
     events_generated: int
     message: str
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str

@@ -1,20 +1,19 @@
 import json
 import os
 import random
-
 from datetime import datetime
 
 from app.config import LOG_DIRECTORY
-from app.uploader import upload_file
 
+# Ensure logs directory exists
 os.makedirs(LOG_DIRECTORY, exist_ok=True)
 
 products = [
-    {"id":101,"category":"Electronics"},
-    {"id":102,"category":"Books"},
-    {"id":103,"category":"Shoes"},
-    {"id":104,"category":"Clothing"},
-    {"id":105,"category":"Sports"}
+    {"id": 101, "category": "Electronics"},
+    {"id": 102, "category": "Books"},
+    {"id": 103, "category": "Shoes"},
+    {"id": 104, "category": "Clothing"},
+    {"id": 105, "category": "Sports"},
 ]
 
 events = [
@@ -25,48 +24,36 @@ events = [
 
 
 def create_log_file():
-
-    filename = datetime.now().strftime(
-        "orders_%Y%m%d_%H%M%S.json"
-    )
-
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"orders_{timestamp}.json"
     return os.path.join(LOG_DIRECTORY, filename)
 
 
-def generate_events(count):
+def generate_events(count: int):
+    """
+    Generate fake e-commerce events.
+    Returns the generated log file path.
+    """
 
-    logfile = create_log_file()
+    log_file = create_log_file()
 
-    for i in range(count):
+    with open(log_file, "a") as file:
 
-        product = random.choice(products)
+        for i in range(count):
 
-        event = {
+            product = random.choice(products)
 
-            "timestamp": datetime.utcnow().isoformat(),
+            event = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "user_id": random.randint(1000, 9999),
+                "product_id": product["id"],
+                "category": product["category"],
+                "event": random.choice(events),
+                "price": round(random.uniform(20, 1000), 2)
+            }
 
-            "user_id": random.randint(1000,9999),
+            file.write(json.dumps(event) + "\n")
 
-            "product_id": product["id"],
+            print(f"Generated Event {i+1}")
 
-            "category": product["category"],
-
-            "event": random.choice(events),
-
-            "price": round(random.uniform(20,1000),2)
-
-        }
-
-        with open(logfile,"a") as file:
-
-            file.write(json.dumps(event)+"\n")
-
-    print("Uploading batch...")
-
-    success = upload_file(logfile)
-
-    if success:
-
-        os.remove(logfile)
-
-    return success
+    return log_file
