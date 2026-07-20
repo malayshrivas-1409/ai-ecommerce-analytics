@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr
 
 
 class GenerateRequest(BaseModel):
@@ -23,3 +24,14 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+
+
+class SignupRequest(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+
+class SignupResponse(BaseModel):
+    status: str
+    message: str

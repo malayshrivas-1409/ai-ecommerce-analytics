@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI E-Commerce Analytics</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>AI E-Commerce Analytics</h1>
+
+        <!-- Signup Section -->
+
+        <div class="card">
+
+            <h2>Sign Up</h2>
+
+            <input
+                id="signup-username"
+                type="text"
+                placeholder="Username"
+            >
+
+            <input
+                id="signup-email"
+                type="email"
+                placeholder="Email"
+            >
+
+            <input
+                id="signup-password"
+                type="password"
+                placeholder="Password"
+            >
+
+            <button onclick="signup()">
+                Create Account
+            </button>
+
+            <p id="signup-message"></p>
+
+        </div>
+
+
+        <!-- Login Section -->
+
+        <div class="card">
+
+            <h2>Login</h2>
+
+            <input
+                id="login-username"
+                type="text"
+                placeholder="Username"
+            >
+
+            <input
+                id="login-password"
+                type="password"
+                placeholder="Password"
+            >
+
+            <button onclick="login()">
+                Login
+            </button>
+
+            <p id="login-message"></p>
+
+        </div>
+
+
+        <!-- Event Generator -->
+
+        <div class="card">
+
+            <h2>Generate E-Commerce Events</h2>
+
+            <input
+                id="event-count"
+                type="number"
+                placeholder="Number of events"
+                min="1"
+            >
+
+            <button onclick="generateEvents()">
+                Generate Events
+            </button>
+
+            <p id="generate-message"></p>
+
+        </div>
+
+    </div>
+
+    <script src="/static/script.js"></script>
+
+</body>
+</html>

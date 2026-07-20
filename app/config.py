@@ -5,7 +5,7 @@ BUCKET_NAME = os.getenv(
     "malay-comm-datalake-2026"
 )
 
-RAW_PREFIX = "raw/orders/"
+RAW_PREFIX = "raw/"
 
 LOG_DIRECTORY = "logs"
 
