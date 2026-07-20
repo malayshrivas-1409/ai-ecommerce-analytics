@@ -35,14 +35,17 @@ app = FastAPI(
     version="1.0.0",
     description="Backend API for AI Powered E-Commerce Analytics Project"
 )
+
+# ✓ FIXED: Use relative paths without 'app/' prefix
 app.mount(
     "/static",
-    StaticFiles(directory="app/static"),
+    StaticFiles(directory="static"),
     name="static"
 )
 
+# ✓ FIXED: Use relative paths without 'app/' prefix
 templates = Jinja2Templates(
-    directory="app/templates"
+    directory="templates"
 )
 
 # Create database tables if they don't exist
@@ -51,13 +54,6 @@ Base.metadata.create_all(bind=engine)
 @app.get("/")
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
-
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy"
-    }
 
 
 @app.get("/health")
