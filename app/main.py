@@ -55,8 +55,11 @@ Base.metadata.create_all(bind=engine)
 @app.get("/")
 def home(request: Request):
     """Serve the home page with index.html"""
-    return templates.TemplateResponse("index.html", {"request": request})
-
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={"request": request},
+    )
 
 @app.get("/health")
 def health():
