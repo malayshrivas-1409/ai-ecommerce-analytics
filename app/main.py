@@ -1,6 +1,7 @@
 import os
+from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
@@ -11,7 +12,6 @@ from app.database import get_db, engine, Base
 from app.db_models import User
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
 
 from app.models import (
     GenerateRequest,
@@ -36,28 +36,31 @@ app = FastAPI(
     description="Backend API for AI Powered E-Commerce Analytics Project"
 )
 
-# ✓ FIXED: Use relative paths without 'app/' prefix
+# ✓ FIXED: Get the correct directory path
+BASE_DIR = Path(__file__).resolve().parent
+
+# ✓ FIXED: Mount static files with correct path
 app.mount(
     "/static",
-    StaticFiles(directory="static"),
+    StaticFiles(directory=str(BASE_DIR / "static")),
     name="static"
 )
 
-# ✓ FIXED: Use relative paths without 'app/' prefix
-templates = Jinja2Templates(
-    directory="templates"
-)
+# ✓ FIXED: Initialize Jinja2Templates with correct path
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # Create database tables if they don't exist
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def home(request: Request):
+    """Serve the home page with index.html"""
     return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/health")
 def health():
+    """Health check endpoint"""
     return {
         "status": "healthy"
     }
@@ -75,6 +78,7 @@ def signup(
     request: SignupRequest,
     db: Session = Depends(get_db)
 ):
+    """Register a new user"""
 
     # Check if username or email already exists
     existing_user = db.query(User).filter(
@@ -134,6 +138,7 @@ def login(
     request: LoginRequest,
     db: Session = Depends(get_db)
 ):
+    """Authenticate user and return JWT token"""
 
     user = authenticate_user(
         db,
@@ -168,6 +173,7 @@ def generate(
     request: GenerateRequest,
     current_user: str = Depends(get_current_user)
 ):
+    """Generate e-commerce events and upload to S3"""
 
     # Generate orders, clicks and cart event files
     log_files = generate_events(
