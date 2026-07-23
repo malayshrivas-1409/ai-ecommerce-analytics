@@ -34,6 +34,8 @@ function initializeDashboard() {
     // Load initial data
     loadMetrics();
     loadSchedulerStatus();
+    initializeAIInsights();
+    loadAIRecommendations();
 
     // Refresh metrics every 5 seconds
     setInterval(loadMetrics, 5000);

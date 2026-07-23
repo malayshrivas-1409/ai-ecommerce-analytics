@@ -6,6 +6,7 @@
     <title>Dashboard - E-Commerce Analytics Platform</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/dashboard.js" defer></script>
+    <script src="/static/ai-insights.js" defer></script>
 </head>
 
 <body class="dashboard-page">
@@ -175,6 +176,43 @@
                 <div id="conversion-funnel" class="list-container"></div>
             </div>
 
+        </div>
+
+
+        <!-- ================================================================
+             AI INSIGHTS & RECOMMENDATIONS SECTION
+             ================================================================ -->
+
+        <div class="section" id="ai-insights-section">
+            <div class="section-header">
+                <h2>🤖 AI Insights</h2>
+                <p>Machine-generated business intelligence and recommendations</p>
+            </div>
+            <div id="ai-insights-content" class="ai-insights-container">
+                <div class="ai-loading">
+                    <div class="spinner"></div>
+                    <p>Loading AI insights...</p>
+                </div>
+            </div>
+            <button onclick="refreshAIInsights()" class="btn-refresh" style="margin-top: 16px;">
+                🔄 Refresh Insights
+            </button>
+        </div>
+
+        <div class="section" id="ai-recommendations-section">
+            <div class="section-header">
+                <h2>💡 AI Recommendations</h2>
+                <p>Strategic recommendations to grow your business</p>
+            </div>
+            <div id="ai-recommendations-content" class="ai-insights-container">
+                <div class="ai-loading">
+                    <div class="spinner"></div>
+                    <p>Loading recommendations...</p>
+                </div>
+            </div>
+            <button onclick="refreshAIRecommendations()" class="btn-refresh" style="margin-top: 16px;">
+                🔄 Refresh Recommendations
+            </button>
         </div>
 
     </div>

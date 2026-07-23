@@ -27,6 +27,10 @@ from app.security import (
 from app.uploader import upload_file
 from app import analytics
 from app.event_scheduler import event_scheduler
+from app.ai_service import ai_service
+from app.logger import logger
+from collections import defaultdict
+from datetime import datetime, timedelta
 
 
 # ============================================================================
@@ -42,6 +46,34 @@ ALLOWED_EMAILS = os.getenv(
     "ALLOWED_EMAILS",
     ""  # Optional: specific emails, comma-separated
 ).split(",") if os.getenv("ALLOWED_EMAILS") else []
+
+
+# ============================================================================
+# RATE LIMITER FOR AI ENDPOINTS
+# ============================================================================
+
+class RateLimiter:
+    def __init__(self, max_per_hour: int = 5):
+        self.requests = defaultdict(list)
+        self.max_per_hour = max_per_hour
+    
+    def is_allowed(self, user_id: str) -> bool:
+        """Check if user can make request"""
+        now = datetime.now()
+        hour_ago = now - timedelta(hours=1)
+        
+        # Clean old requests
+        self.requests[user_id] = [
+            t for t in self.requests[user_id] if t > hour_ago
+        ]
+        
+        if len(self.requests[user_id]) < self.max_per_hour:
+            self.requests[user_id].append(now)
+            return True
+        return False
+
+# Create rate limiter instance
+ai_rate_limiter = RateLimiter(max_per_hour=int(os.getenv("AI_RATE_LIMIT", "5")))
 
 
 # ============================================================================
@@ -383,3 +415,170 @@ def scheduler_resume(current_user: str = Depends(get_current_user)):
 def scheduler_status(current_user: str = Depends(get_current_user)):
     """Get event scheduler status"""
     return event_scheduler.get_status()
+
+
+# ============================================================================
+# AI ENDPOINTS - INSIGHTS & RECOMMENDATIONS
+# ============================================================================
+
+@app.post("/ai/insights")
+def generate_ai_insights(current_user: str = Depends(get_current_user)):
+    """
+    Generate AI insights from current analytics data
+    Endpoint: POST /ai/insights
+    Returns: AI-generated business insights
+    """
+    try:
+        # Check rate limit
+        if not ai_rate_limiter.is_allowed(current_user):
+            logger.warning(f"Rate limit exceeded for user {current_user}")
+            raise HTTPException(
+                status_code=429,
+                detail="Rate limit exceeded. Maximum 5 requests per hour."
+            )
+        
+        # Collect analytics data
+        summary = analytics.get_summary() or {}
+        categories = analytics.get_category_sales() or []
+        funnel = analytics.get_conversion_funnel() or {}
+        
+        # Build analytics data dict
+        analytics_data = {
+            "total_orders": summary.get("total_orders", 0),
+            "total_revenue": summary.get("total_revenue", 0),
+            "avg_order_value": summary.get("average_order_value", 0),
+            "conversion_rate": funnel.get("overall_conversion_rate", 0),
+            "unique_users": 0,  # Can be added if available
+            "top_category": categories[0].get("category") if categories else "N/A",
+            "categories": categories
+        }
+        
+        logger.info(f"Generating insights for user {current_user}")
+        
+        # Generate insights using AI service
+        result = ai_service.generate_insights(analytics_data)
+        
+        # Log success metrics
+        if "insights" in result:
+            logger.info(f"Successfully generated {len(result.get('insights', []))} insights for {current_user}")
+        
+        return {
+            "status": "success",
+            "data": result
+        }
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"AI insights error for user {current_user}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate insights: {str(e)}"
+        )
+
+
+@app.post("/ai/recommendations")
+def generate_ai_recommendations(current_user: str = Depends(get_current_user)):
+    """
+    Generate AI recommendations from analytics data
+    Endpoint: POST /ai/recommendations
+    Returns: AI-generated strategic recommendations
+    """
+    try:
+        # Check rate limit
+        if not ai_rate_limiter.is_allowed(current_user):
+            logger.warning(f"Rate limit exceeded for user {current_user}")
+            raise HTTPException(
+                status_code=429,
+                detail="Rate limit exceeded. Maximum 5 requests per hour."
+            )
+        
+        # Collect analytics data
+        summary = analytics.get_summary() or {}
+        low_products = analytics.get_low_performing_products(limit=5) or []
+        categories = analytics.get_category_sales() or []
+        funnel = analytics.get_conversion_funnel() or {}
+        
+        # Build analytics data dict
+        analytics_data = {
+            "total_orders": summary.get("total_orders", 0),
+            "total_revenue": summary.get("total_revenue", 0),
+            "conversion_rate": funnel.get("overall_conversion_rate", 0),
+            "low_products": low_products,
+            "categories": categories
+        }
+        
+        logger.info(f"Generating recommendations for user {current_user}")
+        
+        # Generate recommendations using AI service
+        result = ai_service.generate_recommendations(analytics_data)
+        
+        # Log success metrics
+        if "recommendations" in result:
+            logger.info(f"Successfully generated {len(result.get('recommendations', []))} recommendations for {current_user}")
+        
+        return {
+            "status": "success",
+            "data": result
+        }
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"AI recommendations error for user {current_user}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate recommendations: {str(e)}"
+        )
+
+
+@app.get("/ai/insights/cached")
+def get_cached_insights(current_user: str = Depends(get_current_user)):
+    """
+    Get last cached insights without making API call
+    Endpoint: GET /ai/insights/cached
+    Returns: Previously cached insights if available
+    """
+    try:
+        # Get current analytics data to generate cache key
+        summary = analytics.get_summary() or {}
+        categories = analytics.get_category_sales() or []
+        funnel = analytics.get_conversion_funnel() or {}
+        
+        analytics_data = {
+            "total_orders": summary.get("total_orders", 0),
+            "total_revenue": summary.get("total_revenue", 0),
+            "avg_order_value": summary.get("average_order_value", 0),
+            "conversion_rate": funnel.get("overall_conversion_rate", 0),
+            "unique_users": 0,
+            "top_category": categories[0].get("category") if categories else "N/A",
+            "categories": categories
+        }
+        
+        # Try to get from cache
+        from app.ai_cache import insights_cache
+        cache_key = insights_cache.get_key(analytics_data)
+        cached_result = insights_cache.get(cache_key) if cache_key else None
+        
+        if cached_result:
+            logger.info(f"Returning cached insights for user {current_user}")
+            return {
+                "status": "success",
+                "cached": True,
+                "data": cached_result
+            }
+        else:
+            logger.info(f"No cached insights available for user {current_user}")
+            return {
+                "status": "success",
+                "cached": False,
+                "data": None,
+                "message": "No cached insights available. Call /ai/insights to generate new ones."
+            }
+            
+    except Exception as e:
+        logger.error(f"Failed to get cached insights: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve cached insights: {str(e)}"
+        )
