@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - E-Commerce Analytics Platform</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/dashboard.js" defer></script>
+</head>
+
+<body class="dashboard-page">
+
+    <!-- ================================================================
+         NAVBAR
+         ================================================================ -->
+
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <h1>📊 Analytics Dashboard</h1>
+            </div>
+            <div class="navbar-menu">
+                <span id="user-info" class="user-info"></span>
+                <button onclick="logout()" class="btn-logout">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- ================================================================
+         MAIN CONTENT
+         ================================================================ -->
+
+    <div class="dashboard-container">
+
+        <!-- ================================================================
+             EVENT GENERATOR SECTION
+             ================================================================ -->
+
+        <div class="section">
+            <div class="section-header">
+                <h2>🚀 Event Generator</h2>
+                <p>Manage automatic event generation with real-time controls</p>
+            </div>
+
+            <div class="scheduler-card">
+                <div class="scheduler-status">
+                    <div class="status-item">
+                        <span class="label">Status</span>
+                        <span id="scheduler-status" class="status-badge status-stopped">Stopped</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Events Generated</span>
+                        <span id="total-events" class="status-value">0</span>
+                    </div>
+                </div>
+
+                <div class="scheduler-controls">
+                    <button id="btn-start" onclick="startScheduler()" class="btn-control btn-start">
+                        ▶ Start
+                    </button>
+                    <button id="btn-pause" onclick="pauseScheduler()" class="btn-control btn-pause" disabled>
+                        ⏸ Pause
+                    </button>
+                    <button id="btn-resume" onclick="resumeScheduler()" class="btn-control btn-resume" disabled>
+                        ▶ Resume
+                    </button>
+                    <button id="btn-stop" onclick="stopScheduler()" class="btn-control btn-stop" disabled>
+                        ⏹ Stop
+                    </button>
+                </div>
+
+                <div id="scheduler-message" class="scheduler-message"></div>
+            </div>
+        </div>
+
+
+        <!-- ================================================================
+             KEY METRICS
+             ================================================================ -->
+
+        <div class="section">
+            <div class="section-header">
+                <h2>📈 Key Metrics</h2>
+            </div>
+
+            <div class="metrics-grid">
+                <!-- Total Orders -->
+                <div class="metric-card">
+                    <div class="metric-icon">📦</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Total Orders</span>
+                        <span id="metric-orders" class="metric-value">0</span>
+                    </div>
+                </div>
+
+                <!-- Total Revenue -->
+                <div class="metric-card">
+                    <div class="metric-icon">💰</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Total Revenue</span>
+                        <span id="metric-revenue" class="metric-value">₹0.00</span>
+                    </div>
+                </div>
+
+                <!-- Average Order Value -->
+                <div class="metric-card">
+                    <div class="metric-icon">💵</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Avg Order Value</span>
+                        <span id="metric-avg" class="metric-value">₹0.00</span>
+                    </div>
+                </div>
+
+                <!-- Conversion Rate -->
+                <div class="metric-card">
+                    <div class="metric-icon">🎯</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Conversion Rate</span>
+                        <span id="metric-conversion" class="metric-value">0%</span>
+                    </div>
+                </div>
+
+                <!-- Unique Users -->
+                <div class="metric-card">
+                    <div class="metric-icon">👥</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Unique Users</span>
+                        <span id="metric-users" class="metric-value">0</span>
+                    </div>
+                </div>
+
+                <!-- Top Category -->
+                <div class="metric-card">
+                    <div class="metric-icon">🏆</div>
+                    <div class="metric-content">
+                        <span class="metric-label">Top Category</span>
+                        <span id="metric-category" class="metric-value">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================================================================
+             ANALYTICS SECTIONS
+             ================================================================ -->
+
+        <div class="analytics-grid">
+
+            <!-- Top Products -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>🏆 Top Products</h2>
+                    <p>Best performing products by revenue</p>
+                </div>
+                <div id="top-products" class="list-container"></div>
+            </div>
+
+            <!-- Category Sales -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>📊 Category Sales</h2>
+                    <p>Sales breakdown across all categories</p>
+                </div>
+                <div id="category-sales" class="list-container"></div>
+            </div>
+
+            <!-- Conversion Funnel -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>📈 Conversion Funnel</h2>
+                    <p>Customer journey from view to purchase</p>
+                </div>
+                <div id="conversion-funnel" class="list-container"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

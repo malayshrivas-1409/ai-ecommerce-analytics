@@ -1,21 +1,92 @@
 version: "3.9"
 
+# ============================================================================
+# SERVICES
+# ============================================================================
+
 services:
 
   api:
+    # ====================================================================
+    # BUILD & IMAGE
+    # ====================================================================
 
     build: .
-
     container_name: ecommerce-api
+    image: ecommerce-analytics:latest
+
+    # ====================================================================
+    # PORTS
+    # ====================================================================
 
     ports:
       - "8000:8000"
 
+    # ====================================================================
+    # ENVIRONMENT VARIABLES
+    # ====================================================================
+
     environment:
-      BUCKET_NAME: malay-comm-datalake-2026
-      MAX_EVENTS_PER_FILE: 10
+      # Application
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+      # Database (PostgreSQL)
+      DATABASE_URL: "postgresql://user:password@localhost:5432/ecommerce"
+
+      # Security
+      SECRET_KEY: "your-secret-key-change-this-in-production"
+
+      # AWS S3
+      BUCKET_NAME: "malay-comm-datalake-2026"
+
+      # AWS Athena
+      ATHENA_DATABASE: "ai-analytics-database-malay"
+      ATHENA_OUTPUT: "s3://malay-comm-datalake-2026/athena-results/"
+
+      # Event Generation
+      MAX_EVENTS_PER_FILE: "10"
+
+      # AWS Credentials (use .env file or secrets manager in production)
+      AWS_REGION: "us-east-1"
+
+    # ====================================================================
+    # VOLUMES
+    # ====================================================================
 
     volumes:
       - ./logs:/app/logs
+      - ./app:/app/app
 
-    restart: unless-stopped
+    # ====================================================================
+    # RESTART POLICY
+    # ====================================================================
+
+    restart: always
+
+    # ====================================================================
+    # HEALTH CHECK
+    # ====================================================================
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+    # ====================================================================
+    # NETWORKS
+    # ====================================================================
+
+    networks:
+      - ecommerce-network
+
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+
+networks:
+  ecommerce-network:
+    driver: bridge

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - E-Commerce Analytics Platform</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/auth.js" defer></script>
+</head>
+
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="logo">
+                <h1>📊 Analytics</h1>
+                <p>E-Commerce Intelligence Platform</p>
+            </div>
+
+            <!-- ================================================================
+                 SECURITY NOTICE
+                 ================================================================ -->
+
+            <div class="security-notice">
+                🔒 <strong>Restricted Access:</strong> This platform is for authorized business analysts and product managers only. Contact your administrator for access.
+            </div>
+
+            <!-- ================================================================
+                 SIGNUP FORM
+                 ================================================================ -->
+
+            <form id="signup-form" class="form" onsubmit="handleSignup(event)">
+                <h2>Create Account</h2>
+
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input
+                        id="signup-username"
+                        type="text"
+                        placeholder="choose_username"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-email">Email Address</label>
+                    <input
+                        id="signup-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input
+                        id="signup-password"
+                        type="password"
+                        placeholder="••••••••"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    Create Account
+                </button>
+
+                <div id="signup-message" class="form-message"></div>
+            </form>
+
+            <!-- ================================================================
+                 LOGIN LINK
+                 ================================================================ -->
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="/login">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
