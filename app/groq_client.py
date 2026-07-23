@@ -2,6 +2,12 @@
 GROQ API Client Wrapper with Bedrock Fallback
 GROK is PRIMARY. Bedrock (Llama 70B) is FALLBACK ONLY.
 Bedrock is only called if GROK fails.
+
+Environment Variables Required (set in ECS Fargate):
+- GROQ_API_KEY: API key for GROK (required for primary)
+- AWS_REGION: AWS region (default: us-east-1)
+- AWS_BEDROCK_MODEL: Bedrock model ID (default: meta.llama3-70b-instruct-v1:0)
+- AI_PROVIDER: Set to 'groq_with_bedrock_fallback' (default: groq_with_bedrock_fallback)
 """
 
 import os
@@ -12,11 +18,22 @@ from app.logger import logger
 
 class GroqClient:
     def __init__(self, api_key: str = None):
+        # Get API key from parameter or environment variable
         self.api_key = api_key or os.getenv("GROQ_API_KEY")
-        if not self.api_key:
-            raise ValueError("GROQ_API_KEY not provided")
-        self.client = Groq(api_key=self.api_key)
-        self.model = "llama-3.3-70b-versatile"  # PRIMARY: GROQ model
+        
+        # Log what's being used
+        if self.api_key:
+            logger.info("✅ GROQ_API_KEY found in environment")
+        else:
+            logger.warning("⚠️ GROQ_API_KEY not found - GROK will fail if used")
+        
+        # Initialize GROQ client (will fail later if no API key)
+        try:
+            self.client = Groq(api_key=self.api_key) if self.api_key else None
+            self.model = "llama-3.3-70b-versatile"  # PRIMARY: GROQ model
+        except Exception as e:
+            logger.warning(f"GROQ client initialization warning: {e}")
+            self.client = None
         
         # Initialize Bedrock FALLBACK if configured
         self.bedrock_client = None
@@ -26,8 +43,9 @@ class GroqClient:
         if os.getenv("AI_PROVIDER") in ["groq_with_bedrock_fallback"]:
             try:
                 import boto3
-                self.bedrock_client = boto3.client('bedrock-runtime', region_name=os.getenv("AWS_REGION", "us-east-1"))
-                logger.info("Bedrock fallback client initialized (used only if GROQ fails)")
+                region = os.getenv("AWS_REGION", "us-east-1")
+                self.bedrock_client = boto3.client('bedrock-runtime', region_name=region)
+                logger.info(f"✅ Bedrock fallback client initialized in region {region} (used only if GROQ fails)")
             except Exception as e:
                 logger.warning(f"Bedrock fallback not available: {e}")
     
@@ -44,6 +62,18 @@ class GroqClient:
         Returns:
             Response text from GROQ or Bedrock (fallback)
         """
+        # If GROQ client not initialized, try fallback immediately
+        if not self.client:
+            logger.warning("GROQ client not available, attempting Bedrock fallback")
+            if self.bedrock_client:
+                try:
+                    return self._invoke_bedrock(prompt, max_tokens)
+                except Exception as e:
+                    logger.error(f"Bedrock fallback also failed: {e}")
+                    raise
+            else:
+                raise RuntimeError("GROQ_API_KEY not configured and Bedrock fallback not available")
+        
         try:
             # PRIMARY: Try GROQ first
             logger.info(f"Attempting GROQ (primary)")
