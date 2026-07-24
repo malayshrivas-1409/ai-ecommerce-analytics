@@ -244,6 +244,18 @@ async function loadMetrics() {
             const data = await response.json();
             displayMetrics(data);
         }
+        
+        // Load hourly sales separately
+        const hourlyResponse = await fetch("/analytics/hourly-sales", {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        
+        if (hourlyResponse.ok) {
+            const hourlyData = await hourlyResponse.json();
+            displayHourlySales(hourlyData);
+        }
     } catch (error) {
         console.error("Failed to load metrics:", error);
     }
@@ -329,13 +341,14 @@ function displayCategorySales(categories) {
         const percentage = ((category.revenue / categories.reduce((sum, c) => sum + c.revenue, 0)) * 100).toFixed(1);
 
         html += `
-            <div class="list-item">
-                <span class="name">${category.category}</span>
-                <span class="value">${category.total_orders} orders</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${percentage}%"></div>
+            <div class="category-item">
+                <div class="category-header">
+                    <span class="category-name">${category.category}</span>
+                    <span class="category-stats">${category.total_orders} orders • ₹${category.revenue.toFixed(2)}</span>
                 </div>
-                <span class="price">₹${category.revenue.toFixed(2)}</span>
+                <div class="category-bar">
+                    <div class="category-fill" style="width: ${percentage}%"></div>
+                </div>
             </div>
         `;
     });
@@ -363,6 +376,41 @@ function displayConversionFunnel(funnel) {
             <div class="funnel-step">
                 <span class="step-label">${step.label}</span>
                 <span class="step-value">${step.value}</span>
+            </div>
+        `;
+    });
+
+    html += "</div>";
+    container.innerHTML = html;
+}
+
+
+function displayHourlySales(hourlyData) {
+    // Display hourly sales breakdown
+
+    const container = document.getElementById("hourly-sales");
+
+    if (!hourlyData || hourlyData.length === 0) {
+        container.innerHTML = "<p class='empty-state'>No hourly sales data available</p>";
+        return;
+    }
+
+    let html = "<div class='hourly-sales-list'>";
+
+    hourlyData.forEach((hour) => {
+        const hour_label = String(hour.hour).padStart(2, "0") + ":00";
+        const max_revenue = Math.max(...hourlyData.map(h => h.revenue));
+        const percentage = (hour.revenue / max_revenue) * 100;
+
+        html += `
+            <div class="hourly-item">
+                <div class="hourly-header">
+                    <span class="hour-time">🕐 ${hour_label}</span>
+                    <span class="hour-stats">${hour.total_orders} orders • ₹${hour.revenue.toFixed(2)}</span>
+                </div>
+                <div class="hour-bar">
+                    <div class="hour-fill" style="width: ${percentage}%"></div>
+                </div>
             </div>
         `;
     });
