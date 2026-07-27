@@ -358,7 +358,92 @@ def analytics_low_performing_products(
     return analytics.get_low_performing_products(limit=limit)
 
 
-@app.get("/analytics/dashboard")
+# ============================================================================
+# PHASE 4: ADVANCED ANALYTICS & CHARTS ENDPOINTS
+# ============================================================================
+
+@app.get("/api/analytics/charts")
+def get_charts_data(
+    dateRange: str = "7days",
+    category: str = "",
+    current_user: str = Depends(get_current_user),
+):
+    """
+    Get chart data for Phase 4 visualization
+    Supports date range and category filters
+    """
+    try:
+        # Get sales trend data
+        summary = analytics.get_summary() or {}
+        hourly = analytics.get_hourly_sales() or []
+        categories = analytics.get_category_sales() or []
+        
+        # Format sales trend for line chart (daily approximation from hourly)
+        sales_trend = []
+        if hourly:
+            # Group hourly sales by date
+            daily_sales = {}
+            for hour_data in hourly:
+                date_key = hour_data.get("hour", "00:00")[:10] if hour_data.get("hour") else "today"
+                if date_key not in daily_sales:
+                    daily_sales[date_key] = 0
+                daily_sales[date_key] += float(hour_data.get("revenue", 0))
+            
+            sales_trend = [
+                {
+                    "date": date,
+                    "revenue": int(revenue)
+                }
+                for date, revenue in sorted(daily_sales.items())[-7:]  # Last 7 days
+            ]
+        
+        # Filter categories if specified
+        category_distribution = categories
+        if category:
+            category_distribution = [c for c in categories if c.get("category") == category]
+        
+        # Format category distribution for pie chart
+        formatted_categories = [
+            {
+                "category": c.get("category", "Unknown"),
+                "value": int(c.get("total_revenue", 0))
+            }
+            for c in category_distribution
+        ]
+        
+        return {
+            "status": "success",
+            "salesTrend": sales_trend,
+            "categoryDistribution": formatted_categories,
+            "dateRange": dateRange,
+            "appliedFilters": {
+                "category": category or "all"
+            }
+        }
+    except Exception as e:
+        logger.error(f"Charts data error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load chart data: {str(e)}"
+        )
+
+
+@app.get("/api/categories")
+def get_categories(current_user: str = Depends(get_current_user)):
+    """Get list of all product categories for filter dropdown"""
+    try:
+        categories_data = analytics.get_category_sales() or []
+        categories = [c.get("category", "Unknown") for c in categories_data]
+        return categories
+    except Exception as e:
+        logger.error(f"Categories error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load categories: {str(e)}"
+        )
+
+
+@app.get("analytics/dashboard")
 def analytics_dashboard(current_user: str = Depends(get_current_user)):
     """
     Get comprehensive dashboard data with all key metrics.

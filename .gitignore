@@ -23,4 +23,6 @@ logs/
 # AWS
 *.pem
 .kiro
+*glue.py
+*lambda.py
 .env.local
