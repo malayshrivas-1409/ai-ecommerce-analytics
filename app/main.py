@@ -417,7 +417,7 @@ def get_charts_data(
         formatted_categories = [
             {
                 "category": c.get("category", "Unknown"),
-                "value": int(c.get("total_revenue", 0))
+                "value": int(c.get("revenue", 0))
             }
             for c in category_distribution
         ]
