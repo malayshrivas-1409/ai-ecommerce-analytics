@@ -759,8 +759,12 @@ let currentFilters = {
 };
 
 // Initialize Phase 4 analytics
+// Initialize Phase 4 analytics
 function initPhase4Analytics() {
-    loadChartData();
+    // Only load if we have the chart containers
+    if (document.getElementById('sales-trend-chart')) {
+        loadChartData();
+    }
     populateCategoryFilter();
 }
 
@@ -928,6 +932,9 @@ function renderCategoryDistributionChart(categoryData) {
 // Populate category filter
 async function populateCategoryFilter() {
     try {
+        const filterSelect = document.getElementById('category-filter');
+        if (!filterSelect) return; // Element doesn't exist on page
+        
         const response = await fetch('/api/categories', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
@@ -937,7 +944,6 @@ async function populateCategoryFilter() {
         if (!response.ok) throw new Error('Failed to load categories');
         
         const categories = await response.json();
-        const filterSelect = document.getElementById('category-filter');
         
         categories.forEach(category => {
             const option = document.createElement('option');
