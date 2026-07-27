@@ -480,7 +480,7 @@ def get_categories(current_user: str = Depends(get_current_user)):
         )
 
 
-@app.get("analytics/dashboard")
+@app.get("/analytics/dashboard")
 def analytics_dashboard(current_user: str = Depends(get_current_user)):
     """
     Get comprehensive dashboard data with all key metrics.

@@ -739,9 +739,7 @@ function enhanceInitialization() {
 }
 
 // Run Phase 3 initialization when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    enhanceInitialization();
-});
+// Note: Already called from initializeDashboard(), removed duplicate
 
 
 /* ============================================================================
