@@ -455,7 +455,7 @@ def get_charts_data(
         )
 
 
-@app.get("/analytics/categories")
+@app.get("/api/categories")
 def get_categories(current_user: str = Depends(get_current_user)):
     """Get list of all product categories for filter dropdown"""
     try:

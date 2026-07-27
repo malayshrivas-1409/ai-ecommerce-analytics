@@ -960,7 +960,7 @@ async function populateCategoryFilter() {
         const filterSelect = document.getElementById('category-filter');
         if (!filterSelect) return; // Element doesn't exist on page
         
-        const response = await fetch('/analytics/categories', {
+        const response = await fetch('/api/categories', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
