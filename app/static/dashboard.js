@@ -40,11 +40,11 @@ function initializeDashboard() {
     initializeAIInsights();
     loadAIRecommendations();
 
-    // Refresh metrics every 5 seconds
-    setInterval(loadMetrics, 5000);
+    // Refresh metrics every 30 seconds (was 5 seconds - too frequent)
+    setInterval(loadMetrics, 30000);
 
-    // Refresh scheduler status every 2 seconds
-    setInterval(loadSchedulerStatus, 2000);
+    // Refresh scheduler status every 10 seconds (was 2 seconds)
+    setInterval(loadSchedulerStatus, 10000);
 }
 
 
@@ -301,7 +301,11 @@ function displayMetrics(data) {
 
     // User insights
     const users = data.user_insights || {};
-    document.getElementById("metric-users").innerText = users.unique_users || 0;
+    const usersElement = document.getElementById("metric-users");
+    if (usersElement) {
+        const currentValue = parseInt(usersElement.innerText) || 0;
+        animateValue(usersElement, currentValue, users.unique_users || 0, 800);
+    }
 
     // Top category
     const categories = data.category_sales || [];
@@ -732,10 +736,7 @@ function initTooltips() {
 function enhanceInitialization() {
     initTheme();
     initScrollReveal();
-    initTooltips();
-    
-    // Add smooth color transitions to all elements
-    document.documentElement.style.setProperty('--transition-smooth', 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)');
+    // Removed initTooltips() - it creates stale tooltip text with initial 0 values
 }
 
 // Run Phase 3 initialization when DOM is ready
@@ -760,7 +761,7 @@ let currentFilters = {
 // Initialize Phase 4 analytics
 function initPhase4Analytics() {
     // Only load if we have the chart containers
-    if (document.getElementById('sales-trend-chart')) {
+    if (document.getElementById('sales-trend-chart') || document.getElementById('category-distribution-chart')) {
         loadChartData();
     }
     populateCategoryFilter();
@@ -769,7 +770,12 @@ function initPhase4Analytics() {
 // Load chart data from API
 async function loadChartData() {
     try {
-        const response = await fetch('/api/analytics/charts', {
+        // Check if we're on the dashboard
+        if (!document.getElementById('sales-trend-chart') && !document.getElementById('category-distribution-chart')) {
+            return;
+        }
+        
+        const response = await fetch('/analytics/charts', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
@@ -778,6 +784,7 @@ async function loadChartData() {
         if (!response.ok) throw new Error('Failed to load chart data');
         
         const data = await response.json();
+        console.log('Chart data received:', data); // Debug log
         renderCharts(data);
     } catch (error) {
         console.error('Chart data error:', error);
@@ -876,15 +883,30 @@ function renderSalesTrendChart(trendData) {
 // Category Distribution Pie Chart
 function renderCategoryDistributionChart(categoryData) {
     const ctx = document.getElementById('category-distribution-chart');
-    if (!ctx) return;
+    if (!ctx) {
+        console.error('Category distribution chart container not found');
+        return;
+    }
 
+    console.log('Category data received:', categoryData);
+    
     // Destroy existing chart if it exists
     if (categoryDistributionChart) {
         categoryDistributionChart.destroy();
     }
 
     const labels = categoryData.map(item => item.category || 'Unknown');
-    const values = categoryData.map(item => item.value || 0);
+    const values = categoryData.map(item => item.revenue || item.value || 0);  // Try both field names
+    
+    console.log('Chart labels:', labels);
+    console.log('Chart values:', values);
+    
+    // If no data, show placeholder
+    if (labels.length === 0) {
+        console.warn('No category data available');
+        ctx.parentElement.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;">No category data available</div>';
+        return;
+    }
     
     const colors = [
         '#6366f1', '#ec4899', '#10b981', '#f59e0b',
@@ -892,39 +914,44 @@ function renderCategoryDistributionChart(categoryData) {
         '#14b8a6', '#d946ef'
     ];
 
-    categoryDistributionChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: values,
-                backgroundColor: colors.slice(0, labels.length),
-                borderColor: '#1e293b',
-                borderWidth: 2,
-                borderSkipped: false,
-                hoverBorderColor: '#fff',
-                hoverBorderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: '#f1f5f9',
-                        font: { size: 12, weight: '500' },
-                        padding: 16,
-                        usePointStyle: true,
-                        pointStyle: 'circle'
+    try {
+        categoryDistributionChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderColor: '#1e293b',
+                    borderWidth: 2,
+                    borderSkipped: false,
+                    hoverBorderColor: '#fff',
+                    hoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#f1f5f9',
+                            font: { size: 12, weight: '500' },
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
                     }
                 }
             }
-        }
-    });
+        });
 
-    document.getElementById('category-chart-container').classList.add('loaded');
+        console.log('Category distribution chart rendered successfully');
+        document.getElementById('category-chart-container').classList.add('loaded');
+    } catch (error) {
+        console.error('Error rendering category distribution chart:', error);
+    }
 }
 
 // Populate category filter

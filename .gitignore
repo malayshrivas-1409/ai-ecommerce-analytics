@@ -26,3 +26,8 @@ logs/
 *glue.py
 *lambda.py
 .env.local
+
+# Deployment scripts (local only)
+deploy.sh
+*.push-to-ecr.sh
+*.local.sh
