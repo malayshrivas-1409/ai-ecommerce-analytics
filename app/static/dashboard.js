@@ -960,7 +960,7 @@ async function populateCategoryFilter() {
         const filterSelect = document.getElementById('category-filter');
         if (!filterSelect) return; // Element doesn't exist on page
         
-        const response = await fetch('/api/categories', {
+        const response = await fetch('/analytics/categories', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
@@ -987,7 +987,7 @@ async function applyFilters() {
     currentFilters.category = document.getElementById('category-filter').value;
 
     try {
-        const response = await fetch('/api/analytics/charts?' + new URLSearchParams({
+        const response = await fetch('/analytics/charts?' + new URLSearchParams({
             dateRange: currentFilters.dateRange,
             category: currentFilters.category
         }), {
